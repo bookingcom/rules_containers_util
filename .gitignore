@@ -1,0 +1,5 @@
+# Bazel symlinks
+bazel-*
+
+# User configuration
+.bazelrc.user
