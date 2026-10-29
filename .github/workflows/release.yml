@@ -1,0 +1,56 @@
+# Cut a release whenever a version tag (v*.*.*) is pushed.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing tag to release
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ inputs.tag_name || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+      - name: Prepare release
+        run: .github/workflows/release_prep.sh "$TAG" >release_notes.md
+      - name: Attest build provenance
+        id: attest
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            rules_containers_util-*.tar.gz
+      - name: Generate attestation assets
+        run: |
+          cat "${{ steps.attest.outputs.bundle-path }}" | jq --compact-output > "rules_containers_util-${TAG}.tar.gz.intoto.jsonl"
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          body_path: release_notes.md
+          files: |
+            rules_containers_util-*.tar.gz
+            rules_containers_util-*.tar.gz.intoto.jsonl
+          fail_on_unmatched_files: true
+
+  publish:
+    needs: release
+    uses: ./.github/workflows/publish.yaml
+    with:
+      tag_name: ${{ inputs.tag_name || github.ref_name }}
+    secrets:
+      BCR_PUBLISH_TOKEN: ${{ secrets.BCR_PUBLISH_TOKEN }}

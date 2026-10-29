@@ -3,4 +3,12 @@ module(
     version = "0.0.1",
 )
 
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "bazel_skylib", version = "1.9.0")
+bazel_dep(name = "rules_img", version = "0.3.24-20261029-189a6a2")
+bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "tar.bzl", version = "0.10.9")
+
+bsd_tar_toolchains = use_extension("@tar.bzl//tar:extensions.bzl", "toolchains")
+use_repo(bsd_tar_toolchains, "bsd_tar_toolchains")
+
+register_toolchains("@bsd_tar_toolchains//:all")
