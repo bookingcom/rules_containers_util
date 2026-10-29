@@ -1,0 +1,16 @@
+{
+  "homepage": "https://github.com/bookingcom/rules_containers_util",
+  "maintainers": [
+    {
+      "name": "Manuel Francisco Naranjo",
+      "email": "naranjo.manuel@gmail.com",
+      "github": "manuelnaranjo",
+      "github_user_id": 545883
+    }
+  ],
+  "repository": [
+    "github:bookingcom/rules_containers_util"
+  ],
+  "versions": [],
+  "yanked_versions": {}
+}

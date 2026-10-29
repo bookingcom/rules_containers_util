@@ -8,6 +8,9 @@ on:
       tag_name:
         required: true
         type: string
+      templates_ref:
+        required: false
+        type: string
     secrets:
       BCR_PUBLISH_TOKEN:
         required: true
@@ -17,12 +20,17 @@ on:
       tag_name:
         required: true
         type: string
+      templates_ref:
+        description: "Git ref to read .bcr templates from (e.g. main)"
+        required: false
+        type: string
 
 jobs:
   publish:
     uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v0.2.2
     with:
       tag_name: ${{ inputs.tag_name }}
+      templates_ref: ${{ inputs.templates_ref }}
       # Fork of bazelbuild/bazel-central-registry the pull request is opened from.
       registry_fork: bookingcom/bazel-central-registry
     permissions:
