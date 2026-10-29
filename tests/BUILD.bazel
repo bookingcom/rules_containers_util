@@ -1,8 +1,152 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@rules_img//img:image.bzl", "image_manifest")
+load("@rules_img//img:layer.bzl", "image_layer")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("@tar.bzl", "tar")
+load("//containers:defs.bzl", "image_extract")
 
 build_test(
     name = "smoke_test",
     targets = [
         "//:LICENSE",
+        "//containers:defs",
+        ":extracted_config",
+        ":extracted_dir",
+        ":extracted_multi",
+        ":extracted_tool",
+        ":repackaged_tar",
+    ],
+)
+
+write_file(
+    name = "config_v1",
+    out = "config_v1.txt",
+    content = ["version=1\n"],
+)
+
+write_file(
+    name = "config_v2",
+    out = "config_v2.txt",
+    content = ["version=2\n"],
+)
+
+write_file(
+    name = "tool_sh",
+    out = "tool.sh",
+    content = [
+        "#!/usr/bin/env bash\n",
+        "echo tool-output-success\n",
+    ],
+    is_executable = True,
+)
+
+write_file(
+    name = "data_first",
+    out = "first.txt",
+    content = ["first payload\n"],
+)
+
+write_file(
+    name = "data_deleted",
+    out = "deleted.txt",
+    content = ["deleted payload\n"],
+)
+
+write_file(
+    name = "empty_wh_file",
+    out = "empty_wh",
+    content = [""],
+)
+
+write_file(
+    name = "data_second",
+    out = "second.txt",
+    content = ["second payload\n"],
+)
+
+# Layer 1: config v1, tool, first data file, and a file to be deleted
+image_layer(
+    name = "test_layer1",
+    srcs = {
+        "/etc/app/config.txt": ":config_v1",
+        "/opt/data/deleted.txt": ":data_deleted",
+        "/opt/data/first.txt": ":data_first",
+        "/usr/local/bin/tool": ":tool_sh",
+    },
+)
+
+# Layer 2: config v2 (overrides config v1), second data file, and whiteout for deleted.txt
+image_layer(
+    name = "test_layer2",
+    srcs = {
+        "/etc/app/config.txt": ":config_v2",
+        "/opt/data/.wh.deleted.txt": ":empty_wh_file",
+        "/opt/data/second.txt": ":data_second",
+    },
+)
+
+# Multi-layer image
+image_manifest(
+    name = "test_image",
+    layers = [
+        ":test_layer1",
+        ":test_layer2",
+    ],
+)
+
+# Extract single file: config (should have version=2 from layer 2)
+image_extract(
+    name = "extracted_config",
+    file = "/etc/app/config.txt",
+    image = ":test_image",
+)
+
+# Extract tool binary
+image_extract(
+    name = "extracted_tool",
+    file = "/usr/local/bin/tool",
+    image = ":test_image",
+)
+
+# Extract directory tree artifact
+image_extract(
+    name = "extracted_dir",
+    directory = "/opt/data",
+    image = ":test_image",
+)
+
+# Extract multiple files using dict
+image_extract(
+    name = "extracted_multi",
+    files = {
+        "/etc/app/config.txt": "custom_config.txt",
+        "/opt/data/first.txt": "custom_first.txt",
+    },
+    image = ":test_image",
+)
+
+# Test consuming extracted directory with tar.bzl's tar rule
+tar(
+    name = "repackaged_tar",
+    srcs = [":extracted_dir"],
+)
+
+# Test consuming extracted files in sh_test
+sh_test(
+    name = "extract_test",
+    size = "small",
+    srcs = ["assert_extracted.sh"],
+    args = [
+        "$(location :extracted_config)",
+        "$(location :extracted_tool)",
+        "$(location :extracted_dir)",
+    ],
+    data = [
+        ":extracted_config",
+        ":extracted_dir",
+        ":extracted_multi",
+        ":extracted_tool",
+        ":repackaged_tar",
     ],
 )

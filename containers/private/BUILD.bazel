@@ -1,0 +1,14 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+package(default_visibility = ["//containers:__subpackages__"])
+
+exports_files(["extract.sh"])
+
+bzl_library(
+    name = "image_extract",
+    srcs = ["image_extract.bzl"],
+    deps = [
+        "@bazel_skylib//lib:paths",
+        "@rules_img//img:providers",
+    ],
+)
