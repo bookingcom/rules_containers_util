@@ -2,6 +2,8 @@
 
 load("@tar.bzl//tar:tar.bzl", "tar_rule")
 
+DEFAULT_VERSION = "0.0.2"
+
 _PLATFORM_CONFIGS = {
     "linux_amd64": {
         "//command_line_option:platforms": ["@rules_go//go/toolchain:linux_amd64"],
