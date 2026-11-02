@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Prepares a release: creates the source archive used by the Bazel Central Registry
-# and prints the release notes.
+# Prepares a release: stamps the integrity of the prebuilt archives in dist/
+# into containers/private/versions.bzl, creates the source archive used by
+# the Bazel Central Registry and prints the release notes.
 #
-# Usage: .github/workflows/release_prep.sh <tag>
+# Usage: .github/workflows/release_prep.sh <tag> [dist dir]
 set -o errexit -o nounset -o pipefail
 
 TAG=$1
+DIST=${2:-}
 VERSION=${TAG#v}
 PREFIX="rules_containers_util-${VERSION}"
 ARCHIVE="rules_containers_util-${TAG}.tar.gz"
@@ -18,6 +20,33 @@ git archive --format=tar --prefix="${PREFIX}/" "${TAG}" | tar -x -C "$work"
 sed -i.bak "0,/version = \".*\"/s//version = \"${VERSION}\"/" "$work/$PREFIX/MODULE.bazel"
 rm -f "$work/$PREFIX/MODULE.bazel.bak"
 
+# If dist directory is provided, stamp integrity into versions.bzl
+if [[ -n "$DIST" && -d "$DIST" ]]; then
+    DIST=$(realpath "$DIST")
+    PLATFORMS=$(sed -n 's/^    "\([a-z0-9_]*\)": \[$/\1/p' containers/private/platforms.bzl)
+    integrity=""
+    for platform in $PLATFORMS; do
+        file="$DIST/dockerfile_parser-${VERSION}-${platform}.tar.gz"
+        if [[ -f "$file" ]]; then
+            sri="sha256-$(openssl dgst -sha256 -binary "$file" | base64)"
+            integrity+="            \"${platform}\": \"${sri}\",\n"
+        fi
+    done
+
+    python3 - "$work/$PREFIX/containers/private/versions.bzl" "$VERSION" "$TAG" "$integrity" <<'PY'
+import re, sys
+path, version, tag, integrity = sys.argv[1:]
+src = open(path).read()
+entry = '    "%s": {\n        "tag": "%s",\n        "integrity": {\n%s        },\n    },\n' % (
+    version, tag, integrity.replace("\\n", "\n"))
+if ('"%s":' % version) in src:
+    new, n = re.subn(r'    "%s": \{\n.*?\n    \},\n' % re.escape(version), entry, src, flags=re.DOTALL)
+else:
+    new, n = re.subn(r'(VERSIONS = \{\n)', r'\1' + entry, src, count=1)
+open(path, "w").write(new)
+PY
+fi
+
 tar --sort=name --owner=0 --group=0 --numeric-owner --mtime="@0" -C "$work" -cf - "$PREFIX" | gzip -n >"$ARCHIVE"
 
 cat <<NOTES
@@ -29,6 +58,12 @@ Add to your \`MODULE.bazel\`:
 
 \`\`\`starlark
 bazel_dep(name = "rules_containers_util", version = "${VERSION}")
+
+containers = use_extension("@rules_containers_util//containers:extensions.bzl", "containers")
+containers.toolchains()
+use_repo(containers, "dockerfile_parser_toolchains")
+
+register_toolchains("@dockerfile_parser_toolchains//:all")
 \`\`\`
 
 > [!NOTE]

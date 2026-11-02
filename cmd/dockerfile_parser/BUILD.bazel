@@ -1,0 +1,36 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("//containers:toolchain.bzl", "dockerfile_parser_toolchain")
+load("//containers/private:versions.bzl", "DEFAULT_VERSION")
+load(":dist.bzl", "dockerfile_parser_distribution", "multiplatform_dockerfile_parser_dist")
+
+go_library(
+    name = "dockerfile_parser_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/bookingcom/rules_containers_util/cmd/dockerfile_parser",
+    visibility = ["//visibility:private"],
+    deps = ["//pkg/dockerfile"],
+)
+
+go_binary(
+    name = "dockerfile_parser",
+    embed = [":dockerfile_parser_lib"],
+    visibility = ["//visibility:public"],
+)
+
+dockerfile_parser_toolchain(
+    name = "dockerfile_parser_toolchain",
+    dockerfile_parser = ":dockerfile_parser",
+    visibility = ["//visibility:public"],
+)
+
+dockerfile_parser_distribution(
+    name = "archive",
+    binary = ":dockerfile_parser",
+)
+
+multiplatform_dockerfile_parser_dist(
+    name = "dist",
+    target = ":archive",
+    version = DEFAULT_VERSION,
+    visibility = ["//visibility:public"],
+)

@@ -18,7 +18,13 @@ permissions:
   attestations: write
 
 jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    secrets:
+      BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+
   release:
+    needs: build
     runs-on: ubuntu-24.04
     env:
       TAG: ${{ inputs.tag_name || github.ref_name }}
@@ -27,22 +33,32 @@ jobs:
         with:
           ref: ${{ env.TAG }}
           fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: dockerfile_parser
+          path: dist
       - name: Prepare release
-        run: .github/workflows/release_prep.sh "$TAG" >release_notes.md
+        run: .github/workflows/release_prep.sh "$TAG" dist >release_notes.md
       - name: Attest build provenance
         id: attest
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
+            dist/*.tar.gz
             rules_containers_util-*.tar.gz
       - name: Generate attestation assets
         run: |
           cat "${{ steps.attest.outputs.bundle-path }}" | jq --compact-output > "rules_containers_util-${TAG}.tar.gz.intoto.jsonl"
+          for f in dist/*.tar.gz; do
+            cat "${{ steps.attest.outputs.bundle-path }}" | jq --compact-output > "${f}.intoto.jsonl"
+          done
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           body_path: release_notes.md
           files: |
+            dist/*.tar.gz
+            dist/*.intoto.jsonl
             rules_containers_util-*.tar.gz
             rules_containers_util-*.tar.gz.intoto.jsonl
           fail_on_unmatched_files: true

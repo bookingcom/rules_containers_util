@@ -1,0 +1,30 @@
+# Builds the dockerfile_parser distribution archive of every supported platform.
+# Reused by ci.yaml and release.yml.
+name: Build
+
+on:
+  workflow_call:
+    secrets:
+      BUILDBUDDY_API_KEY:
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+      - name: Build
+        run: |
+          mkdir -p dist
+          bazel --bazelrc=.github/workflows/ci.bazelrc build -c opt //cmd/dockerfile_parser:dist
+          cp -L bazel-bin/cmd/dockerfile_parser/dockerfile_parser-*.tar.gz dist/
+          ls -l dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dockerfile_parser
+          path: dist/*.tar.gz
+          if-no-files-found: error
