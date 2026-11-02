@@ -12,3 +12,22 @@ bzl_library(
         "@rules_img//img:providers",
     ],
 )
+
+bzl_library(
+    name = "platforms",
+    srcs = ["platforms.bzl"],
+)
+
+bzl_library(
+    name = "versions",
+    srcs = ["versions.bzl"],
+)
+
+bzl_library(
+    name = "repositories",
+    srcs = ["repositories.bzl"],
+    deps = [
+        ":platforms",
+        "//containers:toolchain",
+    ],
+)

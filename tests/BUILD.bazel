@@ -150,3 +150,28 @@ sh_test(
         ":repackaged_tar",
     ],
 )
+
+write_file(
+    name = "sample_dockerfile",
+    out = "Dockerfile.sample",
+    content = [
+        "FROM alpine:3.19 AS base\n",
+        "RUN apk add --no-cache bash && echo done\n",
+        "COPY . /app\n",
+        "RUN echo finish\n",
+    ],
+)
+
+sh_test(
+    name = "dockerfile_parser_test",
+    size = "small",
+    srcs = ["assert_dockerfile_parser.sh"],
+    args = [
+        "$(location //containers:dockerfile_parser)",
+        "$(location :sample_dockerfile)",
+    ],
+    data = [
+        ":sample_dockerfile",
+        "//containers:dockerfile_parser",
+    ],
+)

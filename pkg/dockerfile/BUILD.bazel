@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "dockerfile",
+    srcs = [
+        "parser.go",
+        "shell.go",
+    ],
+    importpath = "github.com/bookingcom/rules_containers_util/pkg/dockerfile",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@cc_mvdan_sh_v3//syntax",
+    ],
+)
+
+go_test(
+    name = "dockerfile_test",
+    srcs = ["parser_test.go"],
+    embed = [":dockerfile"],
+)

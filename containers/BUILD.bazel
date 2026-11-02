@@ -1,13 +1,42 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":toolchain.bzl", "current_dockerfile_parser_toolchain")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["defs.bzl"])
+exports_files([
+    "defs.bzl",
+    "extensions.bzl",
+    "toolchain.bzl",
+])
+
+toolchain_type(
+    name = "dockerfile_parser_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+current_dockerfile_parser_toolchain(
+    name = "dockerfile_parser",
+)
 
 bzl_library(
     name = "defs",
     srcs = ["defs.bzl"],
     deps = [
         "//containers/private:image_extract",
+    ],
+)
+
+bzl_library(
+    name = "toolchain",
+    srcs = ["toolchain.bzl"],
+)
+
+bzl_library(
+    name = "extensions",
+    srcs = ["extensions.bzl"],
+    deps = [
+        "//containers/private:platforms",
+        "//containers/private:repositories",
+        "//containers/private:versions",
     ],
 )
