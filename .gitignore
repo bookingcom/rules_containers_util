@@ -1,6 +1,9 @@
 # Bazel symlinks
 bazel-*
 
+# Distribution artifacts
+dist/
+
 # User configuration
 .bazelrc.user
 

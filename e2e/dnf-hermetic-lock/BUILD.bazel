@@ -1,0 +1,58 @@
+load("@aspect_rules_py//py:defs.bzl", "py_test")
+load("@dnf5-prebuilt//dnf5-prebuilt:defs.bzl", "dnf_config", "rpm_lock")
+load("@rules_containers_util//containers:defs.bzl", "image_extract")
+
+exports_files(["Dockerfile.ol10"])
+
+image_extract(
+    name = "ol10_rpmdb",
+    out = "ol10_rpmdb.sqlite",
+    file = "/usr/lib/sysimage/rpm/rpmdb.sqlite",
+    image = "@oraclelinux_10_slim//:image",
+    platform = "linux/amd64",
+)
+
+image_extract(
+    name = "ol10_repo",
+    out = "oracle-linux-ol10.repo",
+    file = "/etc/yum.repos.d/oracle-linux-ol10.repo",
+    image = "@oraclelinux_10_slim//:image",
+    platform = "linux/amd64",
+)
+
+dnf_config(
+    name = "ol10_dnf_config",
+    install_weak_deps = False,
+    releasever = "10",
+    repo_configs = [":ol10_repo"],
+    vars = {
+        "ocidomain": "oracle.com",
+        "ociregion": "",
+    },
+)
+
+rpm_lock(
+    name = "ol10_curl_git_lock",
+    base_rpmdb = ":ol10_rpmdb",
+    config = ":ol10_dnf_config",
+    packages = [
+        "curl",
+        "git",
+    ],
+)
+
+py_test(
+    name = "e2e_ol10_test",
+    size = "medium",
+    srcs = ["e2e_ol10_test.py"],
+    data = [
+        ":Dockerfile.ol10",
+        ":ol10_curl_git_lock",
+        ":ol10_repo",
+        ":ol10_rpmdb",
+        "@rules_containers_util//containers:dockerfile_parser",
+    ],
+    env = {
+        "PARSER_BIN": "$(location @rules_containers_util//containers:dockerfile_parser)",
+    },
+)

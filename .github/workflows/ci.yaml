@@ -39,6 +39,16 @@ jobs:
         run: bazel --bazelrc=.github/workflows/ci.bazelrc build //...
       - name: Test
         run: bazel --bazelrc=.github/workflows/ci.bazelrc test //...
+      - name: Build dockerfile_parser dist
+        run: |
+          rm -rf dist && mkdir -p dist
+          bazel --bazelrc=.github/workflows/ci.bazelrc build -c opt //cmd/dockerfile_parser:dist
+          cp -f -L bazel-bin/cmd/dockerfile_parser/dockerfile_parser-*.tar.gz dist/
+      - name: Run e2e tests
+        working-directory: e2e/dnf-hermetic-lock
+        run: |
+          bazel --bazelrc=../../.github/workflows/ci.bazelrc test //... \
+            --repo_env=DOCKERFILE_PARSER_DIST_DIR=${{ github.workspace }}/dist
       - name: Upload JSON artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -49,7 +59,8 @@ jobs:
             **/*ast.json
             bazel-testlogs/**/test.outputs/*
             bazel-testlogs/**/*.json
-            artifacts/**/*.json
+            e2e/**/test.outputs/*
+            e2e/**/artifacts/**/*.json
           if-no-files-found: ignore
 
   buildifier:

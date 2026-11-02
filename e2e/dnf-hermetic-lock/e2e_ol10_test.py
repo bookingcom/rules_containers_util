@@ -3,7 +3,6 @@
 
 import json
 import os
-import shutil
 import sqlite3
 import subprocess
 import sys
@@ -17,6 +16,7 @@ def find_file(rel_path: str) -> Path:
     if test_srcdir:
         candidates = [
             Path(test_srcdir) / test_workspace / rel_path,
+            Path(test_srcdir) / "e2e_dnf_hermetic_lock" / rel_path,
             Path(test_srcdir) / "rules_containers_util" / rel_path,
             Path(test_srcdir) / rel_path,
         ]
@@ -28,8 +28,9 @@ def find_file(rel_path: str) -> Path:
     if p.exists():
         return p.resolve()
 
-    repo_root = Path(__file__).resolve().parent.parent
-    p = repo_root / rel_path
+    # Relative to this script's directory
+    script_dir = Path(__file__).resolve().parent
+    p = script_dir / rel_path
     if p.exists():
         return p.resolve()
 
@@ -48,6 +49,7 @@ def get_parser_bin() -> Path:
 
     for candidate in [
         "containers/dockerfile_parser",
+        "rules_containers_util/containers/dockerfile_parser",
         "cmd/dockerfile_parser/dockerfile_parser_/dockerfile_parser",
         "cmd/dockerfile_parser/dockerfile_parser",
     ]:
@@ -63,10 +65,10 @@ class E2EOracleLinux10Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.parser_bin = get_parser_bin()
-        cls.dockerfile_path = find_file("tests/testdata/Dockerfile.ol10")
-        cls.lock_file_path = find_file("tests/ol10_curl_git_lock.lock.json")
-        cls.rpmdb_path = find_file("tests/ol10_rpmdb.sqlite")
-        cls.repo_file_path = find_file("tests/oracle-linux-ol10.repo")
+        cls.dockerfile_path = find_file("Dockerfile.ol10")
+        cls.lock_file_path = find_file("ol10_curl_git_lock.lock.json")
+        cls.rpmdb_path = find_file("ol10_rpmdb.sqlite")
+        cls.repo_file_path = find_file("oracle-linux-ol10.repo")
 
         # Determine output directories for capturing artifacts
         cls.undeclared_outputs_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
@@ -116,16 +118,13 @@ class E2EOracleLinux10Test(unittest.TestCase):
         packages = []
         for run_layer in run_layers:
             tokens = run_layer.get("args", [])
-            # Also check value if args is single token
             if len(tokens) <= 1 and "value" in run_layer:
                 tokens = run_layer["value"].split()
 
-            # Find dnf/yum install invocation
             for i, tok in enumerate(tokens):
                 if tok in ("dnf", "yum") and i + 1 < len(tokens):
                     cmd = tokens[i + 1]
                     if cmd in ("install", "in"):
-                        # Subsequent tokens that are not flags are packages
                         pkg_tokens = [
                             t for t in tokens[i + 2 :] if not t.startswith("-")
                         ]
@@ -159,7 +158,6 @@ class E2EOracleLinux10Test(unittest.TestCase):
             "Extracted rpmdb is not a valid SQLite 3 database",
         )
 
-        # Query packages in base rpmdb
         conn = sqlite3.connect(str(self.rpmdb_path))
         cursor = conn.cursor()
         cursor.execute("SELECT count(*) FROM Packages")
@@ -193,7 +191,6 @@ class E2EOracleLinux10Test(unittest.TestCase):
 
         self.save_json_artifact("ol10_curl_git_lock.lock.json", lock_data)
 
-        # Verify version and requested packages
         self.assertEqual(lock_data.get("version"), 1)
         self.assertEqual(lock_data.get("requested"), ["curl", "git"])
 
@@ -216,7 +213,6 @@ class E2EOracleLinux10Test(unittest.TestCase):
             f"Expected 'git' in locked packages, found: {pkg_names}",
         )
 
-        # Validate fields for every package entry
         for p in packages:
             name = p["name"]
             self.assertTrue(p.get("version"), f"Package {name} missing version")
@@ -242,7 +238,6 @@ class E2EOracleLinux10Test(unittest.TestCase):
                 f"Package {name} invalid 64-char sha256 checksum: {checksum}",
             )
 
-        # Generate summary artifact
         summary = {
             "status": "success",
             "base_image": "oraclelinux:10-slim",

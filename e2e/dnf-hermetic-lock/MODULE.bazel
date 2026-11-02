@@ -1,0 +1,68 @@
+"""End-to-end integration test for dnf5 hermetic lockfile resolution."""
+
+module(
+    name = "e2e_dnf_hermetic_lock",
+    version = "0.0.0",
+)
+
+bazel_dep(name = "rules_containers_util", version = "0.0.1")
+local_path_override(
+    module_name = "rules_containers_util",
+    path = "../..",
+)
+
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "platforms_contrib", version = "1.0.0-alpha.0")
+bazel_dep(name = "aspect_rules_py", version = "2.0.0-alpha.10")
+bazel_dep(name = "rules_img", version = "0.3.24-20261029-189a6a2")
+bazel_dep(name = "tar.bzl", version = "0.10.9")
+
+bsd_tar_toolchains = use_extension("@tar.bzl//tar:extensions.bzl", "toolchains")
+use_repo(bsd_tar_toolchains, "bsd_tar_toolchains")
+
+register_toolchains("@bsd_tar_toolchains//:all")
+
+containers = use_extension("@rules_containers_util//containers:extensions.bzl", "containers")
+containers.toolchains()
+use_repo(containers, "dockerfile_parser_toolchains")
+
+register_toolchains("@dockerfile_parser_toolchains//:all")
+
+python = use_extension("@aspect_rules_py//py:extensions.bzl", "python_interpreters")
+python.toolchain(python_version = "3.13")
+use_repo(
+    python,
+    "python_3_13_aarch64_apple_darwin",
+    "python_3_13_aarch64_unknown_linux_gnu",
+    "python_3_13_x86_64_apple_darwin",
+    "python_3_13_x86_64_unknown_linux_gnu",
+    "python_interpreters",
+)
+
+register_toolchains("@python_interpreters//:all")
+
+bazel_dep(name = "dnf5-prebuilt", version = "5.4.6.0.bcr.3")
+archive_override(
+    module_name = "dnf5-prebuilt",
+    integrity = "sha256-Lsvj4dkCXXnGO7+cX4ZNAAmkrN6fLgHkYn1R0jkt1zc=",
+    strip_prefix = "dnf5-prebuilt-5.4.6.0.bcr.3",
+    urls = ["https://github.com/bookingcom/dnf5-prebuilt/releases/download/v5.4.6.0.bcr.3/dnf5-prebuilt-v5.4.6.0.bcr.3.tar.gz"],
+)
+
+dnf5 = use_extension("@dnf5-prebuilt//dnf5-prebuilt:extensions.bzl", "dnf5")
+dnf5.toolchains()
+use_repo(dnf5, "dnf5_toolchains")
+
+register_toolchains("@dnf5_toolchains//:all")
+
+pull = use_repo_rule("@rules_img//img:pull.bzl", "pull")
+
+pull(
+    name = "oraclelinux_10_slim",
+    layer_handling = "eager",
+    platforms = ["linux/amd64"],
+    registry = "index.docker.io",
+    repository = "library/oraclelinux",
+    tag = "10-slim",
+    unsafe_allow_tag_without_digest = True,
+)
