@@ -1,3 +1,4 @@
+load("@aspect_rules_py//py:defs.bzl", "py_test")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_img//img:image.bzl", "image_manifest")
@@ -151,27 +152,20 @@ sh_test(
     ],
 )
 
-write_file(
-    name = "sample_dockerfile",
-    out = "Dockerfile.sample",
-    content = [
-        "FROM alpine:3.19 AS base\n",
-        "RUN apk add --no-cache bash && echo done\n",
-        "COPY . /app\n",
-        "RUN echo finish\n",
-    ],
+filegroup(
+    name = "testdata",
+    srcs = glob(["testdata/**"]),
 )
 
-sh_test(
+py_test(
     name = "dockerfile_parser_test",
     size = "small",
-    srcs = ["assert_dockerfile_parser.sh"],
-    args = [
-        "$(location //containers:dockerfile_parser)",
-        "$(location :sample_dockerfile)",
-    ],
+    srcs = ["dockerfile_parser_test.py"],
     data = [
-        ":sample_dockerfile",
+        ":testdata",
         "//containers:dockerfile_parser",
     ],
+    env = {
+        "PARSER_BIN": "$(location //containers:dockerfile_parser)",
+    },
 )

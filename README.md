@@ -8,16 +8,14 @@ Add to your `MODULE.bazel`:
 
 ```starlark
 bazel_dep(name = "rules_containers_util", version = "0.0.1")
-
-# Register dockerfile_parser toolchains (prebuilt by default)
-containers = use_extension("@rules_containers_util//containers:extensions.bzl", "containers")
-containers.toolchains()
-use_repo(containers, "dockerfile_parser_toolchains")
-
-register_toolchains("@dockerfile_parser_toolchains//:all")
 ```
 
-Users who want to build the tool from source instead can opt in via `containers.toolchains(from_source = True)` (requires `rules_go`).
+The prebuilt `dockerfile_parser` toolchains are registered automatically. Users who want to build the tool from source instead can opt in via:
+
+```starlark
+containers = use_extension("@rules_containers_util//containers:extensions.bzl", "containers")
+containers.toolchains(from_source = True)
+```
 
 > [!NOTE]
 > Until a new release of `rules_img` containing `flatten-image` is published to the Bazel Central Registry (BCR), configure the `rules_img` pre-release registry in your `.bazelrc`:

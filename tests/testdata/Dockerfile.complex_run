@@ -1,0 +1,8 @@
+FROM ubuntu:24.04
+RUN set -eux; \
+    apt-get update && \
+    apt-get install -y curl || echo "curl install failed"; \
+    if [ ! -d /tmp/build ]; then \
+        mkdir -p /tmp/build; \
+    fi; \
+    (cd /tmp/build && echo "in subshell")
