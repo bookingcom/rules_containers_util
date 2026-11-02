@@ -53,6 +53,11 @@ py_test(
         "@rules_containers_util//containers:dockerfile_parser",
     ],
     env = {
+        "DOCKERFILE_RLOCATION": "$(rlocationpath :Dockerfile.ol10)",
+        "LOCK_RLOCATION": "$(rlocationpath :ol10_curl_git_lock)",
         "PARSER_BIN": "$(location @rules_containers_util//containers:dockerfile_parser)",
+        "PARSER_RLOCATION": "$(rlocationpath @rules_containers_util//containers:dockerfile_parser)",
+        "REPO_RLOCATION": "$(rlocationpath :ol10_repo)",
+        "RPMDB_RLOCATION": "$(rlocationpath :ol10_rpmdb)",
     },
 )

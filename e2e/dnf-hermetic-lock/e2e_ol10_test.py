@@ -11,45 +11,77 @@ from pathlib import Path
 
 
 def find_file(rel_path: str) -> Path:
-    test_srcdir = os.environ.get("TEST_SRCDIR")
-    test_workspace = os.environ.get("TEST_WORKSPACE", "_main")
-    if test_srcdir:
-        candidates = [
-            Path(test_srcdir) / test_workspace / rel_path,
-            Path(test_srcdir) / "e2e_dnf_hermetic_lock" / rel_path,
-            Path(test_srcdir) / "rules_containers_util" / rel_path,
-            Path(test_srcdir) / rel_path,
-        ]
-        for c in candidates:
-            if c.exists():
-                return c.resolve()
+    runfiles_dir = os.environ.get("RUNFILES_DIR") or os.environ.get("TEST_SRCDIR")
 
+    # 1. Direct path check
     p = Path(rel_path)
-    if p.exists():
+    if p.is_file():
         return p.resolve()
 
-    # Relative to this script's directory
+    # 2. Search inside RUNFILES_DIR / TEST_SRCDIR
+    if runfiles_dir:
+        rf = Path(runfiles_dir)
+        # Direct join with runfiles
+        if (rf / rel_path).is_file():
+            return (rf / rel_path).resolve()
+
+        # Handle paths starting with bazel-out/.../bin/ or external/
+        cleaned = rel_path
+        if "bin/" in cleaned:
+            cleaned = cleaned.split("bin/", 1)[1]
+            if (rf / cleaned).is_file():
+                return (rf / cleaned).resolve()
+        if cleaned.startswith("external/"):
+            cleaned_no_ext = cleaned[len("external/"):]
+            if (rf / cleaned_no_ext).is_file():
+                return (rf / cleaned_no_ext).resolve()
+
+        # Search inside workspace subdirectories in runfiles (e.g., _main, rules_containers_util+)
+        if rf.is_dir():
+            for child in rf.iterdir():
+                if child.is_dir():
+                    if (child / rel_path).is_file():
+                        return (child / rel_path).resolve()
+                    if (child / Path(rel_path).name).is_file():
+                        return (child / Path(rel_path).name).resolve()
+
+        # Fallback: search by exact filename across runfiles
+        target_name = Path(rel_path).name
+        for root, _, files in os.walk(runfiles_dir):
+            if target_name in files:
+                candidate = Path(root) / target_name
+                if candidate.is_file():
+                    return candidate.resolve()
+
+    # 3. Relative to this script's directory
     script_dir = Path(__file__).resolve().parent
     p = script_dir / rel_path
-    if p.exists():
+    if p.is_file():
         return p.resolve()
 
-    raise FileNotFoundError(f"Could not locate file: {rel_path}")
+    raise FileNotFoundError(f"Could not locate file: {rel_path} (search root: {runfiles_dir})")
 
 
 def get_parser_bin() -> Path:
+    # 1. Explicit rlocation path
+    if "PARSER_RLOCATION" in os.environ:
+        try:
+            return find_file(os.environ["PARSER_RLOCATION"])
+        except FileNotFoundError:
+            pass
+
+    # 2. Location path
     if "PARSER_BIN" in os.environ:
-        p = Path(os.environ["PARSER_BIN"])
-        if p.exists():
-            return p.resolve()
         try:
             return find_file(os.environ["PARSER_BIN"])
         except FileNotFoundError:
             pass
 
+    # 3. Well-known candidate paths
     for candidate in [
-        "containers/dockerfile_parser",
+        "rules_containers_util+/containers/dockerfile_parser",
         "rules_containers_util/containers/dockerfile_parser",
+        "containers/dockerfile_parser",
         "cmd/dockerfile_parser/dockerfile_parser_/dockerfile_parser",
         "cmd/dockerfile_parser/dockerfile_parser",
     ]:
@@ -65,10 +97,26 @@ class E2EOracleLinux10Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.parser_bin = get_parser_bin()
-        cls.dockerfile_path = find_file("Dockerfile.ol10")
-        cls.lock_file_path = find_file("ol10_curl_git_lock.lock.json")
-        cls.rpmdb_path = find_file("ol10_rpmdb.sqlite")
-        cls.repo_file_path = find_file("oracle-linux-ol10.repo")
+        cls.dockerfile_path = (
+            find_file(os.environ["DOCKERFILE_RLOCATION"])
+            if "DOCKERFILE_RLOCATION" in os.environ
+            else find_file("Dockerfile.ol10")
+        )
+        cls.lock_file_path = (
+            find_file(os.environ["LOCK_RLOCATION"])
+            if "LOCK_RLOCATION" in os.environ
+            else find_file("ol10_curl_git_lock.lock.json")
+        )
+        cls.rpmdb_path = (
+            find_file(os.environ["RPMDB_RLOCATION"])
+            if "RPMDB_RLOCATION" in os.environ
+            else find_file("ol10_rpmdb.sqlite")
+        )
+        cls.repo_file_path = (
+            find_file(os.environ["REPO_RLOCATION"])
+            if "REPO_RLOCATION" in os.environ
+            else find_file("oracle-linux-ol10.repo")
+        )
 
         # Determine output directories for capturing artifacts
         cls.undeclared_outputs_dir = os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR")
