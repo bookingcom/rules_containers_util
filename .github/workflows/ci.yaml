@@ -39,6 +39,18 @@ jobs:
         run: bazel --bazelrc=.github/workflows/ci.bazelrc build //...
       - name: Test
         run: bazel --bazelrc=.github/workflows/ci.bazelrc test //...
+      - name: Upload JSON artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-json-artifacts
+          path: |
+            **/*.lock.json
+            **/*ast.json
+            bazel-testlogs/**/test.outputs/*
+            bazel-testlogs/**/*.json
+            artifacts/**/*.json
+          if-no-files-found: ignore
 
   buildifier:
     runs-on: ubuntu-24.04
