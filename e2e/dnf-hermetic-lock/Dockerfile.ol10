@@ -1,0 +1,2 @@
+FROM oraclelinux:10-slim
+RUN dnf install -y curl git

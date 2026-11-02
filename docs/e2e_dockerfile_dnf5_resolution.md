@@ -20,7 +20,21 @@ To reproduce this hermetically in Bazel without running Docker daemons or execut
 
 ---
 
-## 2. Architecture & Components
+## 2. Architecture & Submodule Isolation
+
+To prevent circular dependencies between `rules_containers_util` and `dnf5-prebuilt` (which itself consumes `rules_containers_util`), the e2e flow is hosted in an isolated submodule workspace at `e2e/dnf-hermetic-lock/`.
+
+The root module ignores `e2e/**` in [`REPO.bazel`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/REPO.bazel) and [`.bazelignore`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/.bazelignore). In turn, `e2e/dnf-hermetic-lock` declares its own [`MODULE.bazel`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/MODULE.bazel) linking back to the root repository via `local_path_override`:
+
+```starlark
+bazel_dep(name = "rules_containers_util", version = "0.0.1")
+local_path_override(
+    module_name = "rules_containers_util",
+    path = "../..",
+)
+
+bazel_dep(name = "dnf5-prebuilt", version = "5.4.6.0.bcr.3")
+```
 
 | Component | Repository / Module | Purpose |
 | :--- | :--- | :--- |
@@ -35,7 +49,7 @@ To reproduce this hermetically in Bazel without running Docker daemons or execut
 
 ### Step 3.1: Defining the Dockerfile
 
-Test fixture located at [`tests/testdata/Dockerfile.ol10`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/tests/testdata/Dockerfile.ol10):
+Test fixture located at [`e2e/dnf-hermetic-lock/Dockerfile.ol10`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/Dockerfile.ol10):
 ```dockerfile
 FROM oraclelinux:10-slim
 RUN dnf install -y curl git
@@ -79,7 +93,7 @@ For Oracle Linux 10, the files of interest inside the image are:
 - **RPM Database**: `/usr/lib/sysimage/rpm/rpmdb.sqlite` (Note: Oracle Linux 9 uses `/var/lib/rpm/rpmdb.sqlite`).
 - **YUM/DNF Repository Configuration**: `/etc/yum.repos.d/oracle-linux-ol10.repo`.
 
-Extraction targets in [`tests/BUILD.bazel`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/tests/BUILD.bazel):
+Extraction targets in [`e2e/dnf-hermetic-lock/BUILD.bazel`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/BUILD.bazel):
 ```starlark
 image_extract(
     name = "ol10_rpmdb",
@@ -135,9 +149,12 @@ The `rpm_lock` action:
 
 ## 4. End-to-End Test Execution
 
-The test is implemented in [`tests/e2e_ol10_test.py`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/tests/e2e_ol10_test.py) and registered as a `py_test` (`//tests:e2e_ol10_test`):
+The test is implemented in [`e2e/dnf-hermetic-lock/e2e_ol10_test.py`](file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/e2e_ol10_test.py) and registered as a `py_test` (`//:e2e_ol10_test`):
 
 ```bash
+cd e2e/dnf-hermetic-lock
+INVOCATION_ID=$(uuidgen) && echo "Invocation ID: ${INVOCATION_ID}" && bazel test --invocation_id=${INVOCATION_ID} //... --test_output=all
+```
 INVOCATION_ID=$(uuidgen) && echo "Invocation ID: ${INVOCATION_ID}" && bazel test --invocation_id=${INVOCATION_ID} //tests:e2e_ol10_test --test_output=all
 ```
 

@@ -1,0 +1,8 @@
+"""Repository configuration for rules_containers_util."""
+
+ignore_directories([
+    ".worktrees/*",
+    ".worktrees/**",
+    "e2e/*",
+    "e2e/**",
+])
