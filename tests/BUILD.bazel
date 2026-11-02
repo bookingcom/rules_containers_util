@@ -1,6 +1,7 @@
 load("@aspect_rules_py//py:defs.bzl", "py_test")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@dnf5-prebuilt//dnf5-prebuilt:defs.bzl", "dnf_config", "rpm_lock")
 load("@rules_img//img:image.bzl", "image_manifest")
 load("@rules_img//img:layer.bzl", "image_layer")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
@@ -127,6 +128,43 @@ image_extract(
     image = ":test_image",
 )
 
+image_extract(
+    name = "ol10_rpmdb",
+    out = "ol10_rpmdb.sqlite",
+    file = "/usr/lib/sysimage/rpm/rpmdb.sqlite",
+    image = "@oraclelinux_10_slim//:image",
+    platform = "linux/amd64",
+)
+
+image_extract(
+    name = "ol10_repo",
+    out = "oracle-linux-ol10.repo",
+    file = "/etc/yum.repos.d/oracle-linux-ol10.repo",
+    image = "@oraclelinux_10_slim//:image",
+    platform = "linux/amd64",
+)
+
+dnf_config(
+    name = "ol10_dnf_config",
+    install_weak_deps = False,
+    releasever = "10",
+    repo_configs = [":ol10_repo"],
+    vars = {
+        "ocidomain": "oracle.com",
+        "ociregion": "",
+    },
+)
+
+rpm_lock(
+    name = "ol10_curl_git_lock",
+    base_rpmdb = ":ol10_rpmdb",
+    config = ":ol10_dnf_config",
+    packages = [
+        "curl",
+        "git",
+    ],
+)
+
 # Test consuming extracted directory with tar.bzl's tar rule
 tar(
     name = "repackaged_tar",
@@ -162,6 +200,22 @@ py_test(
     size = "small",
     srcs = ["dockerfile_parser_test.py"],
     data = [
+        ":testdata",
+        "//containers:dockerfile_parser",
+    ],
+    env = {
+        "PARSER_BIN": "$(location //containers:dockerfile_parser)",
+    },
+)
+
+py_test(
+    name = "e2e_ol10_test",
+    size = "medium",
+    srcs = ["e2e_ol10_test.py"],
+    data = [
+        ":ol10_curl_git_lock",
+        ":ol10_repo",
+        ":ol10_rpmdb",
         ":testdata",
         "//containers:dockerfile_parser",
     ],

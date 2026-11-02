@@ -3,3 +3,6 @@ bazel-*
 
 # User configuration
 .bazelrc.user
+
+# Untether outbox
+.untether-outbox/
