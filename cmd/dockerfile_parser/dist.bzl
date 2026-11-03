@@ -1,8 +1,9 @@
 """Builds distribution archives for dockerfile_parser across supported platforms."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@tar.bzl//tar:tar.bzl", "tar_rule")
 
-DEFAULT_VERSION = "0.0.2"
+DEFAULT_VERSION = "0.0.3"
 
 _PLATFORM_CONFIGS = {
     "linux_amd64": {
@@ -70,11 +71,13 @@ def dockerfile_parser_distribution(name, binary, **kwargs):
     )
 
 def _multiplatform_dist_impl(ctx):
+    flag_val = ctx.attr._version_flag[BuildSettingInfo].value if ctx.attr._version_flag else ""
+    version = ctx.var.get("version") or flag_val or ctx.attr.version or DEFAULT_VERSION
     out_files = []
     output_groups = {}
     for platform, target in ctx.split_attr.target.items():
         src_file = target[DefaultInfo].files.to_list()[0]
-        out_file = ctx.actions.declare_file("dockerfile_parser-%s-%s.tar.gz" % (ctx.attr.version, platform))
+        out_file = ctx.actions.declare_file("dockerfile_parser-%s-%s.tar.gz" % (version, platform))
         ctx.actions.symlink(output = out_file, target_file = src_file)
         out_files.append(out_file)
         output_groups[platform] = depset([out_file])
@@ -92,7 +95,10 @@ multiplatform_dockerfile_parser_dist = rule(
             mandatory = True,
         ),
         "version": attr.string(
-            mandatory = True,
+            default = "",
+        ),
+        "_version_flag": attr.label(
+            default = "//cmd/dockerfile_parser:version",
         ),
         "_allowlist_function_transition": attr.label(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",

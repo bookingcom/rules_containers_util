@@ -27,16 +27,24 @@ if [[ -n "$DIST" && -d "$DIST" ]]; then
     integrity=""
     for platform in $PLATFORMS; do
         file="$DIST/dockerfile_parser-${VERSION}-${platform}.tar.gz"
-        if [[ -f "$file" ]]; then
-            sri="sha256-$(openssl dgst -sha256 -binary "$file" | base64)"
-            integrity+="            \"${platform}\": \"${sri}\",\n"
+        if [[ ! -f "$file" ]]; then
+            echo "ERROR: Missing distribution archive for platform '$platform': $file" >&2
+            exit 1
         fi
+        sri="sha256-$(openssl dgst -sha256 -binary "$file" | base64)"
+        integrity+="            \"${platform}\": \"${sri}\",\n"
     done
 
     python3 - "$work/$PREFIX/containers/private/versions.bzl" "$VERSION" "$TAG" "$integrity" <<'PY'
 import re, sys
 path, version, tag, integrity = sys.argv[1:]
 src = open(path).read()
+
+# Update DEFAULT_VERSION
+src, count = re.subn(r'DEFAULT_VERSION = "[^"]*"', f'DEFAULT_VERSION = "{version}"', src, count=1)
+if count == 0:
+    print(f"WARNING: DEFAULT_VERSION not found in {path}", file=sys.stderr)
+
 entry = '    "%s": {\n        "tag": "%s",\n        "integrity": {\n%s        },\n    },\n' % (
     version, tag, integrity.replace("\\n", "\n"))
 if ('"%s":' % version) in src:
@@ -44,6 +52,14 @@ if ('"%s":' % version) in src:
 else:
     new, n = re.subn(r'(VERSIONS = \{\n)', r'\1' + entry, src, count=1)
 open(path, "w").write(new)
+
+# Also update cmd/dockerfile_parser/dist.bzl if present
+dist_bzl = path.replace("containers/private/versions.bzl", "cmd/dockerfile_parser/dist.bzl")
+try:
+    dist_src = open(dist_bzl).read()
+    open(dist_bzl, "w").write(re.sub(r'DEFAULT_VERSION = "[^"]*"', f'DEFAULT_VERSION = "{version}"', dist_src, count=1))
+except FileNotFoundError:
+    pass
 PY
 fi
 

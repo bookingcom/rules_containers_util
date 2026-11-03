@@ -2,9 +2,18 @@
 
 RELEASE_URL_TEMPLATE = "https://github.com/bookingcom/rules_containers_util/releases/download/{tag}/dockerfile_parser-{version}-{platform}.tar.gz"
 
-DEFAULT_VERSION = "0.0.2"
+DEFAULT_VERSION = "0.0.3"
 
 VERSIONS = {
+    "0.0.3": {
+        "tag": "v0.0.3",
+        "integrity": {
+            "linux_amd64": "sha256-O48RXFRwh4RP92QHbqEqEeYAGeMv5CnQorNZggSahis=",
+            "linux_arm64": "sha256-Y71Hk9zOz34Q7+7dqydOS83iqYgzhV7NmhBh4eu6zCY=",
+            "osx_amd64": "sha256-M4Xvl4QnsiuTbMNxk92jAgcNwhiYJ4JEqkzRf3W9tf4=",
+            "osx_arm64": "sha256-bCd3sZCQfx0x22Kk3VhegGZc501/Rz8E3TleRstPEnA=",
+        },
+    },
     "0.0.2": {
         "tag": "v0.0.2",
         "integrity": {},
