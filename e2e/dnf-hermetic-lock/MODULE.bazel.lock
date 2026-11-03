@@ -442,7 +442,7 @@
     },
     "@@rules_containers_util+//containers:extensions.bzl%containers": {
       "general": {
-        "bzlTransitiveDigest": "e1OGZPDMm2OMXdnX6TZOJmCYPX4iZmgzkOy93+zzdVE=",
+        "bzlTransitiveDigest": "T3Rh+PpMLo9TAUkAWHFw7a0KkEzAFu5XavttUME0RxY=",
         "usagesDigest": "xdeyHBXMVpVS/nR7FfFi0XbA0YyAFB3ifdFA9ZyYoyo=",
         "recordedInputs": [
           "ENV:DOCKERFILE_PARSER_DIST_DIR /home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist"

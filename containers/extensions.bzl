@@ -2,7 +2,7 @@
 
 load("//containers/private:platforms.bzl", "PLATFORMS")
 load("//containers/private:repositories.bzl", "dockerfile_parser_dist_repository", "dockerfile_parser_toolchains_repository")
-load("//containers/private:versions.bzl", "DEFAULT_VERSION", "RELEASE_URL_TEMPLATE", "VERSIONS")
+load("//containers/private:versions.bzl", "INTEGRITY", "RELEASE_URL_TEMPLATE", "VERSION")
 
 _toolchains = tag_class(
     doc = "Declares dockerfile_parser toolchains.",
@@ -10,10 +10,6 @@ _toolchains = tag_class(
         "name": attr.string(
             default = "dockerfile_parser",
             doc = "Base name of generated repositories.",
-        ),
-        "version": attr.string(
-            default = DEFAULT_VERSION,
-            doc = "dockerfile_parser version.",
         ),
         "from_source": attr.bool(
             default = False,
@@ -25,15 +21,12 @@ _toolchains = tag_class(
 def _containers_extension_impl(mctx):
     local_dir = mctx.getenv("DOCKERFILE_PARSER_DIST_DIR")
     from_source = False
-    requested_version = DEFAULT_VERSION
     name = "dockerfile_parser"
 
     for mod in mctx.modules:
         for tag in mod.tags.toolchains:
             if tag.name:
                 name = tag.name
-            if tag.version:
-                requested_version = tag.version
 
             # Only honor from_source if declared by root module
             if mod.is_root and tag.from_source:
@@ -48,26 +41,23 @@ def _containers_extension_impl(mctx):
         )
         return mctx.extension_metadata(reproducible = True)
 
-    release = VERSIONS.get(requested_version, {})
     dist_repos = {}
     for platform in PLATFORMS:
         repo = "%s_%s" % (name, platform)
         if local_dir:
-            urls = ["file://%s/dockerfile_parser-%s-%s.tar.gz" % (local_dir, requested_version, platform)]
+            urls = ["file://%s/dockerfile_parser-%s-%s.tar.gz" % (local_dir, VERSION, platform)]
             integrity = ""
         else:
-            tag_name = release.get("tag", "v" + requested_version)
             urls = [RELEASE_URL_TEMPLATE.format(
-                tag = tag_name,
-                version = requested_version,
+                version = VERSION,
                 platform = platform,
             )]
-            integrity = release.get("integrity", {}).get(platform, "")
+            integrity = INTEGRITY.get(platform, "")
         dockerfile_parser_dist_repository(
             name = repo,
             urls = urls,
             integrity = integrity,
-            version = requested_version,
+            version = VERSION,
         )
         dist_repos[platform] = repo
 
