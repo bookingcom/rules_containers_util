@@ -4,6 +4,17 @@ name: Build
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        description: Git ref to checkout
+        required: false
+        type: string
+        default: ""
+      version:
+        description: Version to stamp into archives (defaults to DEFAULT_VERSION)
+        required: false
+        type: string
+        default: ""
     secrets:
       BUILDBUDDY_API_KEY:
         required: false
@@ -13,6 +24,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: bazel-contrib/setup-bazel@0.15.0
         with:
           bazelisk-cache: true
@@ -20,7 +33,13 @@ jobs:
       - name: Build
         run: |
           mkdir -p dist
-          bazel --bazelrc=.github/workflows/ci.bazelrc build -c opt //cmd/dockerfile_parser:dist
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"
+          BAZEL_ARGS=()
+          if [ -n "$VERSION" ]; then
+            BAZEL_ARGS+=("--//cmd/dockerfile_parser:version=${VERSION}" "--define=version=${VERSION}")
+          fi
+          bazel --bazelrc=.github/workflows/ci.bazelrc build -c opt "${BAZEL_ARGS[@]}" //cmd/dockerfile_parser:dist
           cp -L bazel-bin/cmd/dockerfile_parser/dockerfile_parser-*.tar.gz dist/
           ls -l dist
       - uses: actions/upload-artifact@v4

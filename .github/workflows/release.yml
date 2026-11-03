@@ -20,6 +20,9 @@ permissions:
 jobs:
   build:
     uses: ./.github/workflows/build.yaml
+    with:
+      ref: ${{ inputs.tag_name || github.ref_name }}
+      version: ${{ inputs.tag_name || github.ref_name }}
     secrets:
       BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
 

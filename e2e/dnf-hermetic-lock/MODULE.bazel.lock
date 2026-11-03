@@ -442,8 +442,8 @@
     },
     "@@rules_containers_util+//containers:extensions.bzl%containers": {
       "general": {
-        "bzlTransitiveDigest": "UlPw1agCAKm+pVTg5w9KruknD8ZBX/YyfgucZOxsOMU=",
-        "usagesDigest": "SaYaJj9XE89MLFGlp79cgPLQklPMXEMYRzAzueKpiJ4=",
+        "bzlTransitiveDigest": "e1OGZPDMm2OMXdnX6TZOJmCYPX4iZmgzkOy93+zzdVE=",
+        "usagesDigest": "xdeyHBXMVpVS/nR7FfFi0XbA0YyAFB3ifdFA9ZyYoyo=",
         "recordedInputs": [
           "ENV:DOCKERFILE_PARSER_DIST_DIR /home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist"
         ],
@@ -452,40 +452,40 @@
             "repoRuleId": "@@rules_containers_util+//containers/private:repositories.bzl%dockerfile_parser_dist_repository",
             "attributes": {
               "urls": [
-                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.2-linux_amd64.tar.gz"
+                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.3-linux_amd64.tar.gz"
               ],
               "integrity": "",
-              "version": "0.0.2"
+              "version": "0.0.3"
             }
           },
           "dockerfile_parser_linux_arm64": {
             "repoRuleId": "@@rules_containers_util+//containers/private:repositories.bzl%dockerfile_parser_dist_repository",
             "attributes": {
               "urls": [
-                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.2-linux_arm64.tar.gz"
+                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.3-linux_arm64.tar.gz"
               ],
               "integrity": "",
-              "version": "0.0.2"
+              "version": "0.0.3"
             }
           },
           "dockerfile_parser_osx_amd64": {
             "repoRuleId": "@@rules_containers_util+//containers/private:repositories.bzl%dockerfile_parser_dist_repository",
             "attributes": {
               "urls": [
-                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.2-osx_amd64.tar.gz"
+                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.3-osx_amd64.tar.gz"
               ],
               "integrity": "",
-              "version": "0.0.2"
+              "version": "0.0.3"
             }
           },
           "dockerfile_parser_osx_arm64": {
             "repoRuleId": "@@rules_containers_util+//containers/private:repositories.bzl%dockerfile_parser_dist_repository",
             "attributes": {
               "urls": [
-                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.2-osx_arm64.tar.gz"
+                "file:///home/manuel/workspace/github/rules_containers_util/.worktrees/master/e2e/dnf-hermetic-lock/../../dist/dockerfile_parser-0.0.3-osx_arm64.tar.gz"
               ],
               "integrity": "",
-              "version": "0.0.2"
+              "version": "0.0.3"
             }
           },
           "dockerfile_parser_toolchains": {
