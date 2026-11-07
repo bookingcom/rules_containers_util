@@ -6,7 +6,7 @@ common --show_progress_rate_limit=30
 test --test_output=errors
 
 # BuildBuddy remote cache / execution, enabled by the workflows when the
-# BUILDBUDDY_ENDPOINT repository variable (host name) and the BUILDBUDDY_API_KEY
+# BUILDBUDDY_ENDPOINT repository variable (host name) and the BUILDBUDDY_TOKEN
 # secret are set.
 # The workflow writes the endpoints derived from the host (--bes_backend,
 # --remote_cache and, for buildbuddy-rbe, --remote_executor at grpcs://<host>;

@@ -20,7 +20,7 @@ jobs:
       - uses: ./.github/actions/setup-bazel
         with:
           buildbuddy-endpoint: ${{ vars.BUILDBUDDY_ENDPOINT }}
-          buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
+          buildbuddy-api-key: ${{ secrets.BUILDBUDDY_TOKEN }}
       - name: Build
         run: bazel --bazelrc=.github/workflows/ci.bazelrc build //...
       - name: Test

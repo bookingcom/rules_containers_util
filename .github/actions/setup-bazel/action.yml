@@ -27,5 +27,5 @@ runs:
       shell: bash
       env:
         BUILDBUDDY_ENDPOINT: ${{ inputs.buildbuddy-endpoint }}
-        BUILDBUDDY_API_KEY: ${{ inputs.buildbuddy-api-key }}
+        BUILDBUDDY_TOKEN: ${{ inputs.buildbuddy-api-key }}
       run: tools/setup_buildbuddy.sh
