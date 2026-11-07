@@ -8,6 +8,10 @@ test --test_output=errors
 # BuildBuddy remote cache / execution, enabled by the workflows when the
 # BUILDBUDDY_ENDPOINT repository variable (host name) and the BUILDBUDDY_API_KEY
 # secret are set.
+# The workflow writes the endpoints derived from the host (--bes_backend,
+# --remote_cache and, for buildbuddy-rbe, --remote_executor at grpcs://<host>;
+# --bes_results_url at https://<host>/invocation/) and the API key
+# (--remote_header) to .bazelrc.user; none of them are stored here.
 common:buildbuddy --remote_timeout=3600
 common:buildbuddy --noexperimental_remote_cache_chunking
 common:buildbuddy-rbe --config=buildbuddy

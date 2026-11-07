@@ -15,26 +15,12 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-26.04
-    env:
-      BUILDBUDDY_ENDPOINT: ${{ vars.BUILDBUDDY_ENDPOINT }}
-      BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+      - uses: ./.github/actions/setup-bazel
         with:
-          bazelisk-cache: true
-          repository-cache: true
-          disk-cache: ${{ env.BUILDBUDDY_ENDPOINT == '' || env.BUILDBUDDY_API_KEY == '' }}
-      - name: Configure remote cache
-        if: env.BUILDBUDDY_ENDPOINT != '' && env.BUILDBUDDY_API_KEY != ''
-        run: |
-          {
-            echo "common --config=buildbuddy"
-            echo "common:buildbuddy --bes_backend=grpcs://${BUILDBUDDY_ENDPOINT}"
-            echo "common:buildbuddy --bes_results_url=https://${BUILDBUDDY_ENDPOINT}/invocation/"
-            echo "common:buildbuddy --remote_cache=grpcs://${BUILDBUDDY_ENDPOINT}"
-            echo "common:buildbuddy --remote_header=x-buildbuddy-api-key=${BUILDBUDDY_API_KEY}"
-          } > .bazelrc.user
+          buildbuddy-endpoint: ${{ vars.BUILDBUDDY_ENDPOINT }}
+          buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
       - name: Build
         run: bazel --bazelrc=.github/workflows/ci.bazelrc build //...
       - name: Test

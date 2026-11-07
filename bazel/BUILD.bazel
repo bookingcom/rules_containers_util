@@ -1,0 +1,21 @@
+package(default_visibility = ["//visibility:public"])
+
+# Remote execution platform: Ubuntu 24.04 container image provided by
+# toolchains_buildbuddy, overridable with
+# --repo_env=RBE_CONTAINER_IMAGE=docker://<image>@sha256:<digest> (see rbe.bzl).
+# Only the container image is inherited; the
+# BuildBuddy-specific properties are cleared (an empty value drops an inherited
+# key) so the platform also works on other REAPI backends.
+platform(
+    name = "ubuntu24_04_amd64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    exec_properties = {
+        "Arch": "",
+        "OSFamily": "",
+        "dockerNetwork": "",
+    },
+    parents = ["@rbe_container_image//:platform"],
+)
