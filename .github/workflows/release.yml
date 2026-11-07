@@ -24,7 +24,7 @@ jobs:
       ref: ${{ inputs.tag_name || github.ref_name }}
       version: ${{ inputs.tag_name || github.ref_name }}
     secrets:
-      BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
+      BUILDBUDDY_TOKEN: ${{ secrets.BUILDBUDDY_TOKEN }}
 
   release:
     needs: build

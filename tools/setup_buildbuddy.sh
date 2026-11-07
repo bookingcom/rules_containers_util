@@ -9,10 +9,11 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${REPO_ROOT}"
 
 ENDPOINT="${1:-${BUILDBUDDY_ENDPOINT:-}}"
-API_KEY="${2:-${BUILDBUDDY_API_KEY:-}}"
+ENDPOINT="${ENDPOINT%/}"
+API_KEY="${2:-${BUILDBUDDY_TOKEN:-${BUILDBUDDY_API_KEY:-}}}"
 
 if [ -z "${ENDPOINT}" ] || [ -z "${API_KEY}" ]; then
-  echo "Usage: $0 [<endpoint> <api-key>] (or set BUILDBUDDY_ENDPOINT and BUILDBUDDY_API_KEY)" >&2
+  echo "Usage: $0 [<endpoint> <api-key>] (or set BUILDBUDDY_ENDPOINT and BUILDBUDDY_TOKEN)" >&2
   exit 1
 fi
 
