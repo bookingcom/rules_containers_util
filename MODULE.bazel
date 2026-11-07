@@ -7,7 +7,7 @@ bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "platforms_contrib", version = "1.0.0-alpha.0")
 bazel_dep(name = "bazel_skylib", version = "1.9.2")
 bazel_dep(name = "rules_img", version = "0.3.24")
-bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_shell", version = "0.8.0")
 bazel_dep(name = "tar.bzl", version = "0.10.9")
 
 bsd_tar_toolchains = use_extension("@tar.bzl//tar:extensions.bzl", "toolchains")
@@ -26,7 +26,7 @@ register_toolchains("@dockerfile_parser_toolchains//:all")
 
 bazel_dep(name = "rules_go", version = "0.65.0", dev_dependency = True)
 bazel_dep(name = "gazelle", version = "0.54.0", dev_dependency = True)
-bazel_dep(name = "toolchains_llvm", version = "1.12.0", dev_dependency = True)
+bazel_dep(name = "toolchains_llvm", version = "1.13.0", dev_dependency = True)
 bazel_dep(name = "aspect_rules_py", version = "2.0.0-alpha.10", dev_dependency = True)
 
 python = use_extension("@aspect_rules_py//py:extensions.bzl", "python_interpreters", dev_dependency = True)
