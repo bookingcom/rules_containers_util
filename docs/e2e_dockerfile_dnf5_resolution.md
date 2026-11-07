@@ -33,7 +33,7 @@ local_path_override(
     path = "../..",
 )
 
-bazel_dep(name = "dnf5-prebuilt", version = "5.4.6.0.bcr.3")
+bazel_dep(name = "dnf5-prebuilt", version = "5.4.6.0.bcr.4")
 ```
 
 | Component | Repository / Module | Purpose |
@@ -141,8 +141,8 @@ rpm_lock(
 
 The `rpm_lock` action:
 1. Copies the extracted `ol10_rpmdb.sqlite` into the solver's temporary installroot.
-2. Invokes hermetic `dnf5 download --url --resolve` against Oracle Linux 10 repository endpoints.
-3. Computes SRI integrity hashes (`sha256-...`) and full package metadata records.
+2. Invokes hermetic `dnf5 lock` against Oracle Linux 10 repository endpoints.
+3. Computes topological `install_order`, SRI integrity hashes (`sha256-...`), and package metadata records.
 4. Produces `ol10_curl_git_lock.lock.json`.
 
 ---
@@ -155,15 +155,13 @@ The test is implemented in [`e2e/dnf-hermetic-lock/e2e_ol10_test.py`](file:///ho
 cd e2e/dnf-hermetic-lock
 INVOCATION_ID=$(uuidgen) && echo "Invocation ID: ${INVOCATION_ID}" && bazel test --invocation_id=${INVOCATION_ID} //... --test_output=all
 ```
-INVOCATION_ID=$(uuidgen) && echo "Invocation ID: ${INVOCATION_ID}" && bazel test --invocation_id=${INVOCATION_ID} //tests:e2e_ol10_test --test_output=all
-```
 
 The test validates:
 - [x] `dockerfile_parser` correctly parses `Dockerfile.ol10` into AST JSON.
 - [x] Package targets `['curl', 'git']` are identified from the AST arguments.
 - [x] Extracted `rpmdb.sqlite` is a valid SQLite 3 database with preinstalled base packages.
 - [x] Extracted `oracle-linux-ol10.repo` contains required repo sections (`ol10_baseos_latest`, `ol10_appstream`).
-- [x] Resolved lockfile contains `curl`, `git`, and all 89 transitive dependencies with valid URLs, SRI integrity hashes, and sha256 checksums.
+- [x] Resolved lockfile contains `curl`, `git`, and all 89 transitive dependencies in topological `install_order` with valid URLs and SRI integrity hashes.
 
 ---
 
