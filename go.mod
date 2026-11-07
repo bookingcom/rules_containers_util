@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/moby/buildkit v0.34.2
-	mvdan.cc/sh/v3 v3.10.0
+	mvdan.cc/sh/v3 v3.14.1
 )
 
 require (
