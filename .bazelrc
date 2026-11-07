@@ -8,6 +8,16 @@ common --experimental_repo_remote_exec
 # Bzlmod
 common --enable_bzlmod
 
+# Hermeticity and strict environment
+build --incompatible_strict_action_env
+build --sandbox_default_allow_network=false
+build --incompatible_repo_env_ignores_action_env
+
+# Test output settings
+test --test_summary=terse
+test --test_output=errors
+test --sandbox_default_allow_network=true
+
 # Bazel RBE configuration profile targeting //bazel:ubuntu24_04_amd64
 # The container image of remote actions can be overridden (e.g. in .bazelrc.user) with
 #   common --repo_env=RBE_CONTAINER_IMAGE=docker://<registry>/<image>@sha256:<digest>
