@@ -23,10 +23,10 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: bazel-contrib/setup-bazel@0.15.0
+      - uses: bazel-contrib/setup-bazel@4fd964a13a440a8aeb0be47350db2fc640f19ca8 # 0.15.0
         with:
           bazelisk-cache: true
           repository-cache: true
@@ -42,7 +42,7 @@ jobs:
           bazel --bazelrc=.github/workflows/ci.bazelrc build -c opt "${BAZEL_ARGS[@]}" //cmd/dockerfile_parser:dist
           cp -L bazel-bin/cmd/dockerfile_parser/dockerfile_parser-*.tar.gz dist/
           ls -l dist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dockerfile_parser
           path: dist/*.tar.gz

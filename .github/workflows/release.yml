@@ -32,11 +32,11 @@ jobs:
     env:
       TAG: ${{ inputs.tag_name || github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ env.TAG }}
           fetch-depth: 0
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: dockerfile_parser
           path: dist
@@ -44,7 +44,7 @@ jobs:
         run: .github/workflows/release_prep.sh "$TAG" dist >release_notes.md
       - name: Attest build provenance
         id: attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-path: |
             dist/*.tar.gz
@@ -55,7 +55,7 @@ jobs:
           for f in dist/*.tar.gz; do
             cat "${{ steps.attest.outputs.bundle-path }}" | jq --compact-output > "${f}.intoto.jsonl"
           done
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: ${{ env.TAG }}
           body_path: release_notes.md
