@@ -28,6 +28,25 @@ bazel_dep(name = "rules_go", version = "0.65.0", dev_dependency = True)
 bazel_dep(name = "gazelle", version = "0.54.0", dev_dependency = True)
 bazel_dep(name = "toolchains_llvm", version = "1.13.0", dev_dependency = True)
 bazel_dep(name = "aspect_rules_py", version = "2.0.0-alpha.10", dev_dependency = True)
+bazel_dep(name = "toolchains_buildbuddy", version = "0.0.4", dev_dependency = True)
+
+buildbuddy = use_extension(
+    "@toolchains_buildbuddy//:extensions.bzl",
+    "buildbuddy",
+    dev_dependency = True,
+)
+buildbuddy.platform(
+    container_image = "docker://gcr.io/flame-public/rbe-ubuntu24-04@sha256:be9853fc45092d2cf2bda3abed30d22182881659a50bf35c7125161d7cfc8a75",
+)
+use_repo(buildbuddy, "buildbuddy_toolchain")
+
+# The image above, unless RBE_CONTAINER_IMAGE is set with --repo_env.
+rbe_container_image = use_repo_rule("//bazel:rbe.bzl", "rbe_container_image")
+
+rbe_container_image(
+    name = "rbe_container_image",
+    dev_dependency = True,
+)
 
 python = use_extension("@aspect_rules_py//py:extensions.bzl", "python_interpreters", dev_dependency = True)
 python.toolchain(python_version = "3.13")

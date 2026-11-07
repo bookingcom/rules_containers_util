@@ -1,3 +1,6 @@
+# Startup options
+startup --experimental_remote_repo_contents_cache
+
 # Bzlmod
 common --enable_bzlmod
 
@@ -6,4 +9,4 @@ test:ci --test_output=errors
 test:ci --test_summary=terse
 
 # User configuration if present
-try-import %workspace%/../../.bazelrc.user
+try-import %workspace%/.bazelrc.user

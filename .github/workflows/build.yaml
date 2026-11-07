@@ -26,10 +26,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: bazel-contrib/setup-bazel@104e3eea9447cdaa4b00d0fb46191a3985d26ab3 # 0.19.1
+      - uses: ./.github/actions/setup-bazel
         with:
-          bazelisk-cache: true
-          repository-cache: true
+          buildbuddy-endpoint: ${{ vars.BUILDBUDDY_ENDPOINT }}
+          buildbuddy-api-key: ${{ secrets.BUILDBUDDY_API_KEY }}
       - name: Build
         run: |
           mkdir -p dist

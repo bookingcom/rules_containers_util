@@ -1,5 +1,35 @@
+# Startup options
+startup --experimental_remote_repo_contents_cache
+
+# Common settings
+common --deleted_packages=e2e/dnf-hermetic-lock
+common --experimental_repo_remote_exec
+
 # Bzlmod
 common --enable_bzlmod
+
+# Bazel RBE configuration profile targeting //bazel:ubuntu24_04_amd64
+# The container image of remote actions can be overridden (e.g. in .bazelrc.user) with
+#   common --repo_env=RBE_CONTAINER_IMAGE=docker://<registry>/<image>@sha256:<digest>
+build:rbe --host_platform=//bazel:ubuntu24_04_amd64
+build:rbe --extra_execution_platforms=//bazel:ubuntu24_04_amd64
+build:rbe --spawn_strategy=remote
+build:rbe --remote_local_fallback=true
+build:rbe --remote_download_outputs=minimal
+build:rbe --nobuild_runfile_links
+build:rbe --remote_cache_compression
+build:rbe --experimental_remote_cache_chunking
+build:rbe --experimental_repo_remote_exec
+build:rbe --disk_cache=
+build:rbe --repository_cache=
+build:rbe --noslim_profile
+build:rbe --experimental_profile_include_target_label
+build:rbe --experimental_profile_include_primary_output
+test:rbe --remote_default_exec_properties=dockerNetwork=bridge
+test:rbe --remote_default_exec_properties=network=bridge
+build:rbe --action_env=LC_ALL=C --action_env=LANG=en
+build:rbe --host_action_env=LC_ALL=C
+build:rbe --jobs=40
 
 # CI configuration profile
 common:ci --color=yes
@@ -7,5 +37,5 @@ common:ci --show_progress_rate_limit=5
 test:ci --test_output=errors
 test:ci --test_summary=terse
 
-# Import user configuration if present
+# Import user configuration if present (must be last)
 try-import %workspace%/.bazelrc.user
