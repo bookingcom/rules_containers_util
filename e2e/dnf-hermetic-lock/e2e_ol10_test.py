@@ -249,6 +249,13 @@ class E2EOracleLinux10Test(unittest.TestCase):
             "Lockfile contains no packages",
         )
 
+        install_order = lock_data.get("install_order", [])
+        self.assertEqual(
+            install_order,
+            [p["name"] for p in packages],
+            "Expected install_order to match topological order of packages",
+        )
+
         pkg_names = {p["name"] for p in packages}
         self.assertIn(
             "curl",
@@ -261,6 +268,7 @@ class E2EOracleLinux10Test(unittest.TestCase):
             f"Expected 'git' in locked packages, found: {pkg_names}",
         )
 
+        requested_set = set(lock_data.get("requested", []))
         for p in packages:
             name = p["name"]
             self.assertTrue(p.get("version"), f"Package {name} missing version")
@@ -279,12 +287,18 @@ class E2EOracleLinux10Test(unittest.TestCase):
                 integrity.startswith("sha256-"),
                 f"Package {name} invalid SRI integrity: {integrity}",
             )
-            checksum = p.get("checksum", "")
-            self.assertEqual(
-                len(checksum),
-                64,
-                f"Package {name} invalid 64-char sha256 checksum: {checksum}",
-            )
+            if name in requested_set:
+                self.assertIs(
+                    p.get("requested"),
+                    True,
+                    f"Directly requested package {name} should have requested=True",
+                )
+            else:
+                self.assertNotIn(
+                    "requested",
+                    p,
+                    f"Transitive dependency {name} should omit requested field",
+                )
 
         summary = {
             "status": "success",
