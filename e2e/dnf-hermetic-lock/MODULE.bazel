@@ -14,7 +14,7 @@ local_path_override(
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "platforms_contrib", version = "1.0.0-alpha.0")
 bazel_dep(name = "aspect_rules_py", version = "2.0.0-alpha.10")
-bazel_dep(name = "rules_img", version = "0.3.24-20261029-189a6a2")
+bazel_dep(name = "rules_img", version = "0.3.24")
 bazel_dep(name = "tar.bzl", version = "0.10.9")
 
 bsd_tar_toolchains = use_extension("@tar.bzl//tar:extensions.bzl", "toolchains")

@@ -1,9 +1,6 @@
 # Bzlmod
 common --enable_bzlmod
 
-# Registries
-common --registry=https://bazel-contrib.github.io/rules_img --registry=https://bcr.bazel.build
-
 # CI settings
 test:ci --test_output=errors
 test:ci --test_summary=terse
