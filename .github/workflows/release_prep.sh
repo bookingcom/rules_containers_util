@@ -72,13 +72,6 @@ use_repo(containers, "dockerfile_parser_toolchains")
 register_toolchains("@dockerfile_parser_toolchains//:all")
 \`\`\`
 
-> [!NOTE]
-> Until a new release of \`rules_img\` is published to BCR, you must configure the \`rules_img\` pre-release registry in your \`.bazelrc\`:
->
-> \`\`\`text
-> common --registry=https://bazel-contrib.github.io/rules_img --registry=https://bcr.bazel.build
-> \`\`\`
-
 ### Example
 
 \`\`\`starlark

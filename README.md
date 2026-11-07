@@ -17,13 +17,6 @@ containers = use_extension("@rules_containers_util//containers:extensions.bzl", 
 containers.toolchains(from_source = True)
 ```
 
-> [!NOTE]
-> Until a new release of `rules_img` containing `flatten-image` is published to the Bazel Central Registry (BCR), configure the `rules_img` pre-release registry in your `.bazelrc`:
->
-> ```text
-> common --registry=https://bazel-contrib.github.io/rules_img --registry=https://bcr.bazel.build
-> ```
-
 ## Usage
 
 ### Extract a file or directory

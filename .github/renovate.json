@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    ".worktrees/**"
+  ],
+  "bazel-module": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Ignore locally overridden or archive-overridden Bzlmod dependencies not published in BCR",
+      "matchManagers": ["bazel-module"],
+      "matchPackageNames": [
+        "dnf5-prebuilt",
+        "rules_containers_util"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Group non-major Bazel module dependencies together",
+      "matchManagers": ["bazel-module"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "bazel dependencies (non-major)"
+    }
+  ]
+}
