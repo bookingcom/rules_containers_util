@@ -3,7 +3,7 @@ module github.com/bookingcom/rules_containers_util
 go 1.27.3
 
 require (
-	github.com/moby/buildkit v0.34.2
+	github.com/moby/buildkit v0.35.0
 	mvdan.cc/sh/v3 v3.14.1
 )
 
